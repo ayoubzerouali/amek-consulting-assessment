@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+/* I refactored the method by replacing repeated queries inside loops with eager loading 
+ * and database-level aggregations. I used with, withCount, and withSum to eliminate N+1 
+ * queries and moved sorting and calculations to the database where possible. */
     public function index()
     {
         $orders = Order::with([
@@ -22,18 +25,27 @@ class OrderController extends Controller
         $orderData = [];
 
         foreach ($orders as $order) {
+            //Used already-loaded collections instead of additional database calls           
+            
             /* $customer = $order->customer; */
             /* $items = $order->items; */
             /* $totalAmount = 0; */
             /* $itemsCount = 0; */
+
+            //=================================
+            // replaced with sql aggres using withCount and withSum
 
             /* foreach ($items as $item) { */
             /*     $product = $item->product; */
             /*     $totalAmount += $item->price * $item->quantity; */
             /*     $itemsCount++; */
             /* } */
+            //=================================
 
-            /* $lastAddedToCart = CartItem::where('order_id', $order->id) */
+            //=================================
+            //Avoided querying inside loops 
+            
+            ///* $lastAddedToCart = CartItem::where('order_id', $order->id) */
             /*     ->orderByDesc('created_at') */
             /*     ->first() */
             /*     ->created_at ?? null; */
@@ -53,6 +65,7 @@ class OrderController extends Controller
             ];
         }
 
+        
         /* usort($orderData, function($a, $b) { */
         /*     $aCompletedAt = Order::where('id', $a['order_id']) */
         /*         ->where('status', 'completed') */
